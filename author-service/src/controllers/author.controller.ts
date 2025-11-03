@@ -1,5 +1,6 @@
 import cloudinary from "../config/cloudinary";
 import { db } from "../config/db.config";
+import { addNewBlogInQueue } from "../utils/bullmq";
 import { getBuffer } from "../utils/helper";
 import { HttpStatusCode } from "../utils/HttpStatusCode";
 import { TryCatch } from "../utils/TryCatch";
@@ -36,6 +37,8 @@ export const createBlog = TryCatch(async (req, res) => {
       image: result.secure_url,
     },
   });
+
+  await addNewBlogInQueue(newBlog);
 
   return res.status(HttpStatusCode.OK).json({
     message: "Blog created successfully",
@@ -87,6 +90,8 @@ export const updateBlog = TryCatch(async (req, res) => {
     },
   });
 
+  await addNewBlogInQueue(updateBlog);
+
   return res.status(HttpStatusCode.OK).json({
     message: "Blog updated successfully",
     blog: updatedBlog,
@@ -115,9 +120,11 @@ export const deleteBlog = TryCatch(async (req, res) => {
     });
   }
 
-  await db.blog.delete({
+  const deltedBlog = await db.blog.delete({
     where: { id: Number(id) },
   });
+
+  await addNewBlogInQueue(deltedBlog);
 
   return res.status(HttpStatusCode.OK).json({
     message: "Blog deleted successfully",

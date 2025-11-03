@@ -3,14 +3,14 @@ import axios from "axios";
 import { db } from "../config/db.config";
 import { HttpStatusCode } from "../utils/HttpStatusCode";
 import { TryCatch } from "../utils/TryCatch";
-import { redisClient } from "../config/redis.config";
+import { client } from "../config/redis.config";
 
 export const getAllBlogs = TryCatch(async (req, res) => {
   const { query = "", category = "" } = req.query;
 
   const cachedKey = `blogs:${query}:${category}`;
 
-  const cachedData = await redisClient.get(cachedKey);
+  const cachedData = await client.get(cachedKey);
 
   if (cachedData) {
     return res.status(HttpStatusCode.OK).json({
@@ -37,7 +37,7 @@ export const getAllBlogs = TryCatch(async (req, res) => {
     blog = await db.blog.findMany({});
   }
 
-  await redisClient.setEx(cachedKey, 3600, JSON.stringify(blog));
+  await client.set(cachedKey, JSON.stringify(blog), "EX", 3600);
 
   return res.status(HttpStatusCode.OK).json({
     message: "Blog fetched successfully",
@@ -50,7 +50,7 @@ export const getBlogById = TryCatch(async (req, res) => {
 
   const cachedKey = `blog:${id}`;
 
-  const cachedData = await redisClient.get(cachedKey);
+  const cachedData = await client.get(cachedKey);
 
   if (cachedData) {
     return res.status(HttpStatusCode.OK).json({
@@ -81,7 +81,7 @@ export const getBlogById = TryCatch(async (req, res) => {
     console.warn("Author service unavailable — skipping author info");
   }
 
-  await redisClient.setEx(cachedKey, 3600, JSON.stringify({ blog, author }));
+  await client.set(cachedKey, JSON.stringify({ blog, author }), "EX", 3600);
 
   return res.status(HttpStatusCode.OK).json({
     message: "Blog fetched successfully",

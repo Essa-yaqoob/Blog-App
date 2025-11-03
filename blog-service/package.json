@@ -16,9 +16,10 @@
     "@prisma/client": "^6.18.0",
     "amqplib": "^0.10.9",
     "axios": "^1.13.1",
+    "bullmq": "^5.63.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "redis": "^5.9.0"
+    "ioredis": "^5.8.2"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
